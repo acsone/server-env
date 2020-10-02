@@ -1,12 +1,12 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
-import logging
 import json
+import logging
 
 from odoo import api, fields, models
 from odoo.exceptions import AccessError, ValidationError
+from odoo.tools import ormcache
 from odoo.tools.config import config
 from odoo.tools.translate import _
-from odoo.tools import ormcache
 
 _logger = logging.getLogger(__name__)
 
@@ -22,15 +22,11 @@ class EncryptedData(models.Model):
     _name = "encrypted.data"
     _description = "Store any encrypted data by environment"
 
-    name = fields.Char(
-        required=True, readonly=True, index=True, help="Technical name"
-    )
+    name = fields.Char(required=True, readonly=True, index=True, help="Technical name")
     environment = fields.Char(
-        required=True,
-        index=True,
-        help="Concerned Odoo environment (prod, preprod...)",
+        required=True, index=True, help="Concerned Odoo environment (prod, preprod...)",
     )
-    encrypted_data = fields.Binary()
+    encrypted_data = fields.Binary(attachment=False)
 
     _sql_constraints = [
         (
@@ -61,14 +57,10 @@ class EncryptedData(models.Model):
         if self.env.context.get("bin_size"):
             self = self.with_context(bin_size=False)
         if not self.env.user._is_superuser():
-            raise AccessError(
-                _("Encrypted data can only be read as superuser")
-            )
+            raise AccessError(_("Encrypted data can only be read as superuser"))
         if not env:
             env = self._retrieve_env()
-        encrypted_rec = self.search(
-            [("name", "=", name), ("environment", "=", env)]
-        )
+        encrypted_rec = self.search([("name", "=", name), ("environment", "=", env)])
         if not encrypted_rec:
             return None
         return encrypted_rec._decrypt_data(env)
@@ -111,10 +103,7 @@ class EncryptedData(models.Model):
         key_str = config.get(key_name)
         if not key_str:
             raise ValidationError(
-                _(
-                    "No '%s' entry found in config file. "
-                    "Use a key similar to: %s"
-                )
+                _("No '%s' entry found in config file. " "Use a key similar to: %s")
                 % (key_name, Fernet.generate_key())
             )
         # key should be in bytes format
@@ -135,18 +124,12 @@ class EncryptedData(models.Model):
         if not env:
             env = self._retrieve_env()
         encrypted_data = self._encrypt_data(data, env)
-        existing_data = self.search(
-            [("name", "=", name), ("environment", "=", env)]
-        )
+        existing_data = self.search([("name", "=", name), ("environment", "=", env)])
         if existing_data:
             existing_data.write({"encrypted_data": encrypted_data})
         else:
             self.create(
-                {
-                    "name": name,
-                    "environment": env,
-                    "encrypted_data": encrypted_data,
-                }
+                {"name": name, "environment": env, "encrypted_data": encrypted_data}
             )
         self._encrypted_get.clear_cache(self)
         self._encrypted_read_json.clear_cache(self)
