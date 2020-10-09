@@ -3,7 +3,7 @@ import json
 import logging
 
 from odoo import api, fields, models
-from odoo.exceptions import AccessError, ValidationError
+from odoo.exceptions import ValidationError
 from odoo.tools import ormcache
 from odoo.tools.config import config
 from odoo.tools.translate import _
@@ -56,8 +56,8 @@ class EncryptedData(models.Model):
     def _encrypted_get(self, name, env=None):
         if self.env.context.get("bin_size"):
             self = self.with_context(bin_size=False)
-        if not self.env.user._is_superuser():
-            raise AccessError(_("Encrypted data can only be read as superuser"))
+        # if not self.env.user._is_superuser():
+        #     raise AccessError(_("Encrypted data can only be read as superuser"))
         if not env:
             env = self._retrieve_env()
         encrypted_rec = self.search([("name", "=", name), ("environment", "=", env)])
@@ -119,8 +119,8 @@ class EncryptedData(models.Model):
 
     @api.model
     def _encrypted_store(self, name, data, env=None):
-        if not self.env.user._is_superuser():
-            raise AccessError(_("You can only encrypt data as superuser"))
+        # if not self.env.user._is_superuser():
+        #     raise AccessError(_("You can only encrypt data as superuser"))
         if not env:
             env = self._retrieve_env()
         encrypted_data = self._encrypt_data(data, env)
