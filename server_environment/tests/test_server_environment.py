@@ -18,7 +18,7 @@ class TestEnv(common.ServerEnvironmentCase):
     def _test_default(self, hidden_pwd=False):
         model = self.env["server.config"]
         rec = model.create({})
-        fields = model.fields_view_get()["fields"]
+        fields = model.fields_get()
         self.assertTrue(fields)
         defaults = rec.default_get(list(fields))
         self.assertTrue(defaults)
