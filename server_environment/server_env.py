@@ -212,7 +212,8 @@ class ServerConfiguration(models.TransientModel):
                 sparse="config",
                 readonly=True,
             )
-            setattr(
+            # Do not use 'setattr', to skip safeguard (PR odoo/odoo#247151)
+            type.__setattr__(
                 ServerConfiguration,
                 col_name,
                 tmp_field,

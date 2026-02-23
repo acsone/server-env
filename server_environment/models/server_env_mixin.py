@@ -356,7 +356,8 @@ class ServerEnvMixin(models.AbstractModel):
         inverse_method = _partialmethod(
             type(self)._inverse_server_env, field.name, __name__=inverse_method_name
         )
-        setattr(type(self), inverse_method_name, inverse_method)
+        # Do not use 'setattr', to skip safeguard (PR odoo/odoo#247151)
+        type.__setattr__(type(self), inverse_method_name, inverse_method)
         field.inverse = inverse_method_name
         field.store = False
         field.required = False
